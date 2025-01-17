@@ -1,0 +1,33 @@
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="60" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Normal Meme</title>
+    <link rel="stylesheet" href="../static/css/main.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.js"></script>
+</head>
+<body style="height: 250px; width: 400px;">
+    <div id="image" style="height: 250px; width: 400px; background-size: 400px 250px; background-repeat: no-repeat; background-attachment: fixed"class="parent">
+        <h1 id="top-text" style="text-align: center; color: white; text-shadow: 3px 0 #000, -3px 0 #000, 0 3px #000, 0 -3px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000; word-wrap: break-word" class="top"></h1>
+        <h1 id="bottom-text" style="text-align: center; color: white; text-shadow: 3px 0 #000, -3px 0 #000, 0 3px #000, 0 -3px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000; word-wrap: break-word" class="bottom"></h1>
+    </div>
+    <script>
+        function updateMeme(memeinfo) {
+            const elementTopText = document.getElementById("top-text");
+            const elementBottomText = document.getElementById("bottom-text");
+            const elementImage = document.getElementById("image");
+            elementTopText.innerHTML = memeinfo.top_text;
+            elementBottomText.innerHTML = memeinfo.bottom_text;
+            elementImage.style.backgroundImage = "url("+memeinfo.image+")";
+        }
+        const requestOptions = {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+        };
+        const url = "/handle_put_normalmeme";
+        fetch(url, requestOptions)
+        .then(response => response.json())
+        .then(updateMeme);
+    </script>
+</body>
+</html>
