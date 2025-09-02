@@ -1,72 +1,37 @@
-from flask import Flask, render_template, request, jsonify
-from client import add_facememe, top_facememe_id, first_facememe, add_normalmeme, top_normalmeme_id, first_normalmeme
-from datetime import datetime
+import eventlet
+eventlet.monkey_patch()
 
+from flask import Flask
+from flask_cors import CORS
+from flask_socketio import SocketIO
+from routes import register_routes
+from background import start_tts_worker
+from utils.caddy import start_caddy
+import logging
 
-app = Flask(__name__, template_folder='templates')
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
+logging.getLogger("socketio").setLevel(logging.WARNING)
+logging.getLogger("engineio").setLevel(logging.WARNING)
 
-@app.route('/')
-def index():
-  return render_template('AnnoyTheStreamer.html')
+app = Flask(__name__, template_folder="templates")
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
-@app.route('/handle_get', methods=['GET'])
-def handle_get():
-    if request.method == 'GET':
-        top_text = "a"
-        bottom_text = "a"
-        print(top_text, bottom_text)
-        return render_template('FaceMeme.html', variable="a") 
+# --- REGISTER ROUTES ---
+register_routes(app, socketio)
 
-@app.route('/handle_put_facememe', methods=['PUT'])
-def handle_put():
-    if request.method == 'PUT':
-        meme = first_facememe()
-        return jsonify(meme)
-    
-@app.route('/handle_put_normalmeme', methods=['PUT'])
-def handle_put2():
-    if request.method == 'PUT':
-        meme = first_normalmeme()
-        print(meme)
-        return jsonify(meme)
-    
-@app.route('/handle_post', methods=['POST'])
-def handle_post():
-    if request.method == 'POST':
-        top_text_facememe = request.form['top_text_facememe']
-        bottom_text_facememe = request.form['bottom_text_facememe']
-        image_normalmeme = request.form['image_normalmeme']
-        top_text_normalmeme = request.form['top_text_normalmeme']
-        bottom_text_normalmeme = request.form['bottom_text_normalmeme']
-        if image_normalmeme=="":
-            add_facememe({
-                "_id" : top_facememe_id()+1,
-                "top_text" : top_text_facememe,
-                "bottom_text" : bottom_text_facememe,
-                "timestamp" : datetime.now(),
-                "done" : "no"
-            })
-            return render_template('AnnoyTheStreamer.html')
-        else:
-            add_normalmeme({
-                "_id" : top_normalmeme_id()+1,
-                "image" : image_normalmeme,
-                "top_text" : top_text_normalmeme,
-                "bottom_text" : bottom_text_normalmeme,
-                "timestamp" : datetime.now(),
-                "done" : "no"
-            })
-            return render_template('AnnoyTheStreamer.html')
-    else:
-        return render_template('AnnoyTheStreamer.html')
-    
-@app.route('/FaceMeme')
-def facememe():
-    return render_template('FaceMeme.html')
+if __name__ == "__main__":
+    caddy_proc = start_caddy()
+    start_tts_worker(socketio)
 
-@app.route('/NormalMeme')
-def normalmeme():
-    return render_template('NormalMeme.html')
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=2137)    
+    try:
+        logging.warning("Starting ATS app on 0.0.0.0:2137")
+        socketio.run(app, host="0.0.0.0", port=2137, debug=False)
+    finally:
+        logging.warning("Shutting down Caddy...")
+        if caddy_proc:
+            try:
+                caddy_proc.terminate()
+            except Exception as e:
+                logging.error(f"Error terminating Caddy: {e}")
