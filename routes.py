@@ -193,3 +193,4 @@ def register_routes(app, socketio: SocketIO):
         if username and username in online_users:
             online_users.remove(username)
             socketio.emit("update_users", list(online_users))
+

@@ -1,6 +1,6 @@
 window.CHAT_CONFIG = {
     // Add list of nicknames to be treated as admins (change of colors)
-    admins: ["Greawer"],
+    admins: [""],
     // Change colors for all users
     colors: {
         admin: "#FAB4EE",
@@ -8,3 +8,4 @@ window.CHAT_CONFIG = {
         self: "#F51D50"
     }
 };
+

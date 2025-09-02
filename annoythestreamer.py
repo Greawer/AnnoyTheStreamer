@@ -21,17 +21,24 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 # --- REGISTER ROUTES ---
 register_routes(app, socketio)
 
-if __name__ == "__main__":
-    caddy_proc = start_caddy()
+# --- CADDY (OPTIONAL) ---
+# if __name__ == "__main__":
+#     caddy_proc = start_caddy()
+#     start_tts_worker(socketio)
+# 
+#     try:
+#         logging.warning("Starting ATS app on 0.0.0.0:80")
+#         socketio.run(app, host="0.0.0.0", port=2137, debug=False)
+#     finally:
+#         logging.warning("Shutting down Caddy...")
+#         if caddy_proc:
+#             try:
+#                 caddy_proc.terminate()
+#             except Exception as e:
+#                 logging.error(f"Error terminating Caddy: {e}")
+# --- NO CADDY (DEFAULT) ---
+if __name__ == '__main__':
     start_tts_worker(socketio)
+    logging.warning('Starting ATS app on 0.0.0.0:80')
+    socketio.run(app, host='0.0.0.0', port=80, debug=False)
 
-    try:
-        logging.warning("Starting ATS app on 0.0.0.0:2137")
-        socketio.run(app, host="0.0.0.0", port=2137, debug=False)
-    finally:
-        logging.warning("Shutting down Caddy...")
-        if caddy_proc:
-            try:
-                caddy_proc.terminate()
-            except Exception as e:
-                logging.error(f"Error terminating Caddy: {e}")
